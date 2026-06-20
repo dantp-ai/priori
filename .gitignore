@@ -10,3 +10,6 @@ __marimo__/
 
 # TabPFN weights — large, and re-downloadable from the HF Hub (see README)
 weights/
+
+# Jupyter notebook cache
+.ipynb_checkpoints/
