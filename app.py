@@ -121,10 +121,10 @@ def _(dataset, leak):
 
 
 @app.cell
-def _(alt, dataset, leak_on, metrics, mo):
+def _(alt, context, dataset, leak_on, metrics, mo):
     d = metrics[(metrics["dataset"] == dataset.value) & (metrics["leakage"] == leak_on)]
 
-    hero = (
+    line = (
         alt.Chart(d)
         .mark_line(point=True, opacity=0.85)
         .encode(
@@ -133,11 +133,22 @@ def _(alt, dataset, leak_on, metrics, mo):
             color=alt.Color("model:N", title="model"),
             tooltip=["model", "n_context", alt.Tooltip("AUC", format=".4f"), alt.Tooltip("total_time", format=".2f")],
         )
-        .properties(height=320, title="Accuracy vs. time — each point is a context size")
+    )
+    # Ring the points at the selected in-context size so the dropdown visibly
+    # drives this chart too (the line still shows every context size).
+    selected = d[d["n_context"] == context.value]
+    highlight = (
+        alt.Chart(selected)
+        .mark_point(size=260, filled=False, stroke="black", strokeWidth=2)
+        .encode(x="total_time:Q", y="AUC:Q")
+    )
+    hero = (line + highlight).properties(
+        height=320, title="Accuracy vs. time — each point is a context size"
     )
     mo.md(
         "## 🎯 Accuracy vs. time (the Pareto picture)\n"
-        "Top-left = better. TabPFN buys accuracy with compute; XGBoost is cheap."
+        "Top-left = better. TabPFN buys accuracy with compute; XGBoost is cheap. "
+        "The ringed points mark the selected in-context size."
     )
     return d, hero
 
