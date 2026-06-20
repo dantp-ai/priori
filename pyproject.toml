@@ -1,0 +1,23 @@
+[project]
+name = "priori"
+version = "0.1.0"
+description = "Interactive marimo benchmark of TabPFN v2 vs XGBoost & AutoGluon on business tables."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    # dashboard + benchmark engine
+    "marimo>=0.23",
+    "altair>=5.4",
+    "pandas>=2.2",
+    "pyarrow>=15",
+    "numpy>=1.26",
+    "scikit-learn>=1.4",
+    "xgboost>=2.1",
+    "tabpfn>=8.0",
+    # to open / view the GPU notebook locally
+    "notebook>=7.2",
+]
+
+[tool.uv]
+# Scripts (app.py, bench.py, …) are run directly, not installed as a package.
+package = false
