@@ -48,27 +48,27 @@ marimo export html-wasm app.py -o build --mode run && \
   python -m http.server --directory build  # preview the shareable static app
 ```
 
-## Deploy (free, GitHub Pages)
-
-The dashboard is visualization-only (no torch in the browser — it reads the
-precomputed `public/results.json`), so it exports to a static WASM app:
-
-1. Push this repo to GitHub.
-2. **Settings → Pages → Source: GitHub Actions.**
-3. `.github/workflows/deploy.yml` rebuilds and publishes on every push to `main`.
-
 ## GPU experiments
 
-`TabPFN_GPU_experiments.ipynb` (open in Google Colab, set Runtime → GPU): tests
-the *"matches a 4-hour AutoML pipeline, instantly"* claim (TabPFN vs XGBoost vs
-**AutoGluon**), shows TabPFN's trend-extrapolation limit on time series, and runs
-regression on a continuous business target.
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/dantp-ai/priori/blob/main/TabPFN_GPU_experiments.ipynb)
+
+`TabPFN_GPU_experiments.ipynb` tests the *"matches a 4-hour AutoML pipeline,
+instantly"* claim (TabPFN vs XGBoost vs **AutoGluon**), shows TabPFN's
+trend-extrapolation limit on time series, and runs regression on a continuous
+business target.
+
+**Run it on a free GPU — no install, no clone:**
+
+1. Click the **Open in Colab** badge above. Colab loads the notebook straight
+   from this public GitHub repo; no authorization needed.
+2. In Colab: **Runtime → Change runtime type → GPU**.
+3. **Runtime → Run all.** Weights download from the public HF checkpoints, so no
+   token is required.
+
 
 ## Files
 
-- `bench.py` — data loading/cleaning + `run_model()` (single source of truth).
+- `bench.py` — data loading/cleaning + `run_model()`.
 - `precompute.py` — runs the full grid once → `public/results.json`.
 - `app.py` — reactive marimo dashboard (Altair charts).
 - `make_colab.py` — regenerates the GPU notebook.
-
-All numbers are real runs; nothing is mocked.
