@@ -195,12 +195,10 @@ alt.Chart(exp1).mark_point(size=140, filled=True).encode(
 """))
 
 cells.append(md(r"""
-## 3 · Experiment 2 — time series & the trend-extrapolation limit
+## 3 · Experiment 2 — time series, and TabPFN's trend behaviour
 
-TabPFN-TS reframes forecasting as **tabular regression** on time features (this cell
-does that featurization by hand). TabPFN is a strong *conditional interpolator* but,
-by construction, **cannot extrapolate a trend beyond the values it saw in training** —
-a structural consequence of its synthetic pretraining. We make that failure visible.
+TabPFN-TS reframes forecasting as **tabular regression on time features** (done by hand here: a time index + Fourier seasonality). A documented limitation is that TabPFN is a strong *conditional interpolator* and can struggle to **extrapolate a trend beyond the target range seen in training** (Hoo et al., 2025). How much that
+is true depends on the features: with an explicit time-index feature, as below, it actually extrapolates this synthetic trend well — the raw and de-trended forecasts nearly coincide. De-trending (forecast the residual around a linear fit, then add the trend back) is the standard fallback for when it does not.
 """))
 
 cells.append(code(r"""
@@ -237,15 +235,16 @@ ts = pd.concat([
 alt.Chart(ts).mark_line().encode(
     x="t:Q", y="value:Q", color="series:N",
 ).properties(width=720, height=300,
-    title="Raw TabPFN flattens on the trend; de-trending restores it")
+    title="TabPFN-TS forecast: trend + seasonality (raw vs. de-trended)")
 """))
 
 cells.append(md(r"""
 ## 4 · Experiment 3 — regression on a business target
 
-Tabular foundation models do **classification *and* regression**. Here TabPFN v2's
-regressor predicts a continuous business value (`Total Revenue` per telco customer)
-vs an XGBoost regressor — reporting R² and MAE.
+Tabular foundation models do **classification *and* regression**. We predict customer **tenure (months)** vs an XGBoost regressor — reporting R² and MAE.
+
+Target leakage: predicting `Total Revenue` gives R² ≈ 1.0 because it's
+an accounting sum of the other `Total *` columns. So we drop those billing aggregates and predict tenure.
 """))
 
 cells.append(code(r"""
@@ -253,8 +252,11 @@ from sklearn.metrics import r2_score, mean_absolute_error
 from xgboost import XGBRegressor
 
 df = pd.read_parquet(TELCO)
-target = "Total Revenue"
-drop = [target] + TELCO_DROP + TELCO_LEAK + ["Churn"]
+target = "Tenure in Months"
+# Billing aggregates accumulate over tenure, so they leak the target — drop them.
+BILLING = ["Total Charges", "Total Revenue", "Total Long Distance Charges",
+           "Total Extra Data Charges", "Total Refunds"]
+drop = [target] + TELCO_DROP + TELCO_LEAK + BILLING + ["Churn"]
 Xr = encode(df.drop(columns=[c for c in drop if c in df.columns])).to_numpy()
 yr = pd.to_numeric(df[target], errors="coerce").fillna(0).to_numpy()
 Xtr, Xte, ytr, yte = train_test_split(Xr, yr, test_size=0.25, random_state=SEED)
